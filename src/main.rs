@@ -15,7 +15,7 @@ impl Router {
             while let Ok((mut inbound, _)) = listener.accept().await {
                 let Ok(mut outbound) = TcpStream::connect(destination.clone()).await else {
                     eprintln!("Failed to connect tcp");
-                    return;
+                    continue;
                 };
         
                 tokio::spawn(async move {
