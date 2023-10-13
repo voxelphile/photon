@@ -36,3 +36,18 @@ spec:
             requests:
               cpu: "0.05"
               memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: photon # Sets service name
+  labels:
+    app: photon # Labels and Selectors
+spec:
+  type: LoadBalancer # Sets service type
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: photon
