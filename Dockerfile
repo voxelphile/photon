@@ -1,5 +1,3 @@
-ENV GIT_BRANCH=main
-
 FROM rust
 
 WORKDIR /usr/src/app
