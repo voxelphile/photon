@@ -19,7 +19,10 @@ impl Router {
                 };
         
                 tokio::spawn(async move {
-                    copy_bidirectional(&mut inbound, &mut outbound).await.expect("failed to stream tcp data");
+                    let Ok(_) = copy_bidirectional(&mut inbound, &mut outbound).await else {
+                        eprintln!("failed to stream tcp data");
+                        return;
+                    };
                 });
             }
         });
@@ -29,4 +32,5 @@ impl Router {
 #[tokio::main]
 async fn main() {
     Router::tcp("0.0.0.0:5432", "34.118.225.0:5432").await;
+    loop {}
 }
