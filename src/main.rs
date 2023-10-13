@@ -1,4 +1,4 @@
-use std::{net::{SocketAddr}, collections::HashMap};
+use std::{net::{SocketAddr}, collections::HashMap, time::Duration};
 
 use futures::stream::FuturesUnordered;
 use tokio::{net::{TcpListener, TcpStream, ToSocketAddrs}, io::copy_bidirectional};
@@ -32,5 +32,7 @@ impl Router {
 #[tokio::main]
 async fn main() {
     Router::tcp("0.0.0.0:5432", "34.118.225.0:5432").await;
-    loop {}
+    loop {
+        tokio::time::sleep(Duration::from_secs(1)).await;
+    }
 }
