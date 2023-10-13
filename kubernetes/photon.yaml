@@ -1,0 +1,38 @@
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: photon
+  namespace: photon
+  labels:
+    app: photon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: photon
+  template:
+    metadata:
+      labels:
+        app: photon
+    spec:
+      terminationGracePeriodSeconds: 25
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-spot
+                operator: In
+                values:
+                - "true"
+      containers:
+        - image: gcr.io/voxelphile/github.com/voxelphile/photon
+          imagePullPolicy: IfNotPresent
+          name: photon-sha256-1
+          resources:
+            limits:
+              cpu: "0.05"
+              memory: "128Mi"
+            requests:
+              cpu: "0.05"
+              memory: "128Mi"
