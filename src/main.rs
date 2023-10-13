@@ -7,10 +7,16 @@ pub struct Router;
 
 impl Router {
     pub async fn tcp(source: impl ToSocketAddrs, destination: impl ToSocketAddrs + Clone + Send + Sync + 'static) {
-        let listener = TcpListener::bind(source).await.expect("failed to bind tcp proxy");
+        let Ok(listener) = TcpListener::bind(source).await else {
+            eprintln!("Failed to bind tcp");
+            return;
+        };
         tokio::spawn(async move {
             while let Ok((mut inbound, _)) = listener.accept().await {
-                let mut outbound = TcpStream::connect(destination.clone()).await.expect("failed to connect to tcp destination");
+                let Ok(mut outbound) = TcpStream::connect(destination.clone()).await else {
+                    eprintln!("Failed to connect tcp");
+                    return;
+                };
         
                 tokio::spawn(async move {
                     copy_bidirectional(&mut inbound, &mut outbound).await.expect("failed to stream tcp data");
