@@ -13,7 +13,7 @@ impl Router {
         };
         tokio::spawn(async move {
             while let Ok((mut inbound, _)) = listener.accept().await {
-                let destination = match env::var("PROTON_STRATEGY").unwrap().to_lowercase().as_str() {
+                let destination = match env::var("PHOTON_STRATEGY").unwrap().to_lowercase().as_str() {
                     "k8s" => {
                         //this only works on linux
                         let output = tokio::process::Command::new("kubectl describe -n photon pod | grep 'IP:' | head -1 | sed 's: ::g").spawn().unwrap().wait_with_output().await.unwrap();    
