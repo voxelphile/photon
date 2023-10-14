@@ -1,6 +1,7 @@
 use std::{net::{SocketAddr}, collections::HashMap, time::Duration, env};
 
 use futures::stream::FuturesUnordered;
+use shutil::pipe;
 use tokio::{net::{TcpListener, TcpStream, ToSocketAddrs}, io::copy_bidirectional};
 
 pub struct Router;
@@ -16,8 +17,14 @@ impl Router {
                 let destination = match env::var("PHOTON_STRATEGY").unwrap().to_lowercase().as_str() {
                     "k8s" => {
                         //this only works on linux
-                        let output = tokio::process::Command::new("kubectl describe -n photon pod | grep 'IP:' | head -1 | sed 's: ::g").spawn().unwrap().wait_with_output().await.unwrap();    
-                        String::from_utf8(output.stdout).unwrap().replace("IP:", "")
+                        let output = pipe(vec![
+                            vec!["kubectl", "describe", "-n", "photon", "pod"],
+                            vec!["grep", "'IP:'"],
+                            vec!["head", "-1"],
+                            vec!["sed", "'s: ::g'"],
+                        ]).unwrap();
+
+                        output.replace("IP:", "")
                     },
                     "host" => {
                         env::var("DB_HOST").unwrap()

@@ -255,6 +255,7 @@ name = "photon"
 version = "0.1.0"
 dependencies = [
  "futures",
+ "shutil",
  "tokio",
 ]
 
@@ -308,6 +309,12 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
+
+[[package]]
+name = "shutil"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "726c1f160d565e9cef6ecaf0305c86fb254a9c6db6cb29379680b0213aa3a7e1"
 
 [[package]]
 name = "signal-hook-registry"
