@@ -17,14 +17,18 @@ impl Router {
                 let destination = match env::var("PHOTON_STRATEGY").unwrap().to_lowercase().as_str() {
                     "k8s" => {
                         //this only works on linux
-                        let output = pipe(vec![
+                        let output_result = pipe(vec![
                             vec!["kubectl", "describe", "-n", "photon", "pod"],
                             vec!["grep", "'IP:'"],
                             vec!["head", "-1"],
                             vec!["sed", "'s: ::g'"],
-                        ]).unwrap();
+                        ]);
 
-                        output.replace("IP:", "")
+                        if let Err(err) = output_result {
+                            panic!("{:?} {:?}", err.code(), err);
+                        }
+
+                        output_result.unwrap().replace("IP:", "")
                     },
                     "host" => {
                         env::var("DB_HOST").unwrap()
