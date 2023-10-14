@@ -48,7 +48,7 @@ spec:
   ports:
     - name: photon
       port: 5432
-      targetPort: 5432
+      targetPort: 5432 # rando
       nodePort: 31111
   selector:
     app: photon
