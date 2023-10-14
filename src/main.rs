@@ -1,23 +1,25 @@
-use std::{net::{SocketAddr}, collections::HashMap, time::Duration, env};
+use std::{net::{SocketAddr}, collections::{HashMap, HashSet}, time::Duration, env};
 
 use futures::stream::FuturesUnordered;
 use shutil::pipe;
 use tokio::{net::{TcpListener, TcpStream, ToSocketAddrs}, io::copy_bidirectional};
 
-pub fn get_ip_of_pod_in_namespace(namespace: &str) -> Option<String> {
+pub fn get_ip_of_pod_in_namespace(namespace: &str) -> Option<HashSet<String>> {
     //this only works on linux
     let output_result = pipe(vec![
         vec!["kubectl", "describe", "-n", namespace, "pod"],
         vec!["grep", "IP:"],
-        vec!["head", "-1"],
         vec!["sed", "s: ::g"],
     ]);
 
-    if let Err(err) = output_result {
+    if let Err(err) = &output_result {
         eprintln!("failed to get k8s pod host: {:?} {:?}", err.code(), err);
         None?;
     }
-    Some(output_result.unwrap().replace("IP:", "").trim().to_owned())
+
+    let ips = output_result.unwrap().split("\n").map(|ip| ip.replace("IP:", "").trim().to_owned()).collect::<HashSet<_>>();
+
+    Some(ips)
 }
 
 pub struct Router;
@@ -32,11 +34,14 @@ impl Router {
             while let Ok((mut inbound, _)) = listener.accept().await {
                 let destination = match env::var("PHOTON_STRATEGY").unwrap().to_lowercase().as_str() {
                     "k8s" => {
-                        let Some(ip) = get_ip_of_pod_in_namespace("photon") else {
+                        let Some(ips) = get_ip_of_pod_in_namespace("photon") else {
                             continue;
                         };
 
-                        format!("{}:{}", ip, "5432")
+                        //for now, there are no database replicas, so we assert there is only one pod
+                        assert_eq!(ips.len(), 1);
+
+                        format!("{}:{}", ips.iter().next().unwrap(), "5432")
                     },
                     "host" => {
                         env::var("DB_HOST").unwrap()
@@ -51,7 +56,7 @@ impl Router {
         
                 tokio::spawn(async move {
                     let Ok(_) = copy_bidirectional(&mut inbound, &mut outbound).await else {
-                        eprintln!("failed to stream tcp data");
+                        eprintln!("failed to stream tcp data"); //lol
                         return;
                     };
                 });
@@ -59,8 +64,6 @@ impl Router {
         });
     }
 }
-
-
 
 #[tokio::main]
 async fn main() {
