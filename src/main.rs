@@ -24,6 +24,7 @@ impl Router {
                     }
                     _ => panic!("invalid strategy")
                 };
+                println!("connecting to database at host: \"{}\"", &destination);
                 let Ok(mut outbound) = TcpStream::connect(destination).await else {
                     eprintln!("Failed to connect tcp");
                     return;
