@@ -4,7 +4,7 @@ use futures::stream::FuturesUnordered;
 use shutil::pipe;
 use tokio::{net::{TcpListener, TcpStream, ToSocketAddrs}, io::copy_bidirectional};
 
-pub fn get_ip_of_pod_in_namespace(namespace: &str) -> &str {
+pub fn get_ip_of_pod_in_namespace(namespace: &str) -> Option<String> {
     //this only works on linux
     let output_result = pipe(vec![
         vec!["kubectl", "describe", "-n", namespace, "pod"],
@@ -15,9 +15,9 @@ pub fn get_ip_of_pod_in_namespace(namespace: &str) -> &str {
 
     if let Err(err) = output_result {
         eprintln!("failed to get k8s pod host: {:?} {:?}", err.code(), err);
-        continue;
+        None?;
     }
-    output_result.unwrap().replace("IP:", "").trim()
+    Some(output_result.unwrap().replace("IP:", "").trim().to_owned())
 }
 
 pub struct Router;
@@ -32,8 +32,11 @@ impl Router {
             while let Ok((mut inbound, _)) = listener.accept().await {
                 let destination = match env::var("PHOTON_STRATEGY").unwrap().to_lowercase().as_str() {
                     "k8s" => {
-                        
-                        format!("{}:{}", get_ip_of_pod_in_namespace("photon"), "5432")
+                        let Some(ip) = get_ip_of_pod_in_namespace("photon") else {
+                            continue;
+                        };
+
+                        format!("{}:{}", ip, "5432")
                     },
                     "host" => {
                         env::var("DB_HOST").unwrap()
@@ -43,7 +46,7 @@ impl Router {
                 println!("connecting to database at host: \"{}\"", &destination);
                 let Ok(mut outbound) = TcpStream::connect(destination).await else {
                     eprintln!("Failed to connect tcp");
-                    return;
+                    continue;
                 };
         
                 tokio::spawn(async move {
