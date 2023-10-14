@@ -18,14 +18,13 @@ spec:
       terminationGracePeriodSeconds: 25
       affinity:
         nodeAffinity:
-              preferredDuringSchedulingIgnoredDuringExecution:
-              - weight: 1
-                preference:
-                  matchExpressions:
-                  - key: cloud.google.com/gke-spot
-                    operator: Equal
-                    values:
-                    - true
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-spot
+                operator: In
+                values:
+                - "true"
       containers:
         - image: gcr.io/voxelphile/github.com/voxelphile/photon
           imagePullPolicy: IfNotPresent
