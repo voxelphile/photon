@@ -33,6 +33,7 @@ impl Router {
 async fn main() {
     Router::tcp("0.0.0.0:5432", "34.118.225.0:5432").await;
     loop {
+        //so the application does not exit
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
 }
