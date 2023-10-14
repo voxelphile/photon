@@ -25,7 +25,8 @@ impl Router {
                         ]);
 
                         if let Err(err) = output_result {
-                            panic!("{:?} {:?}", err.code(), err);
+                            eprintln!("failed to get k8s pod host: {:?} {:?}", err.code(), err);
+                            continue;
                         }
 
                         output_result.unwrap().replace("IP:", "")
