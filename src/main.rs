@@ -29,7 +29,7 @@ impl Router {
                             continue;
                         }
 
-                        format!("{}:{}", output_result.unwrap().replace("IP:", ""), "5432")
+                        format!("{}:{}", output_result.unwrap().replace("IP:", "").trim(), "5432")
                     },
                     "host" => {
                         env::var("DB_HOST").unwrap()
