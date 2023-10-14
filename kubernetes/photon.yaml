@@ -18,13 +18,14 @@ spec:
       terminationGracePeriodSeconds: 25
       affinity:
         nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: cloud.google.com/gke-spot
-                operator: In
-                values:
-                - "true"
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 1
+                preference:
+                  matchExpressions:
+                  - key: cloud.google.com/gke-spot
+                    operator: Equal
+                    values:
+                    - true
       containers:
         - image: gcr.io/voxelphile/github.com/voxelphile/photon
           imagePullPolicy: IfNotPresent
@@ -44,10 +45,11 @@ metadata:
   labels:
     app: photon # Labels and Selectors
 spec:
-  type: LoadBalancer # Sets service type
+  type: NodePort # Sets service type
   ports:
     - name: postgres
       port: 5432
       targetPort: 5432
+      nodePort: 32323
   selector:
     app: photon
