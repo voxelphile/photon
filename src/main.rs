@@ -19,9 +19,9 @@ impl Router {
                         //this only works on linux
                         let output_result = pipe(vec![
                             vec!["kubectl", "describe", "-n", "photon", "pod"],
-                            vec!["grep", "'IP:'"],
+                            vec!["grep", "IP:"],
                             vec!["head", "-1"],
-                            vec!["sed", "'s: ::g'"],
+                            vec!["sed", "s: ::g"],
                         ]);
 
                         if let Err(err) = output_result {
@@ -29,7 +29,7 @@ impl Router {
                             continue;
                         }
 
-                        output_result.unwrap().replace("IP:", "")
+                        format!("{}:{}", output_result.unwrap().replace("IP:", ""), "5432")
                     },
                     "host" => {
                         env::var("DB_HOST").unwrap()
