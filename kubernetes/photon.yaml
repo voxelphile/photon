@@ -46,7 +46,7 @@ metadata:
 spec:
   type: NodePort # Sets service type
   ports:
-    - name: postgres
+    - name: photon
       port: 5432
       targetPort: 5432
       nodePort: 31111
