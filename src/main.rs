@@ -1,4 +1,4 @@
-use std::{net::{SocketAddr, UdpSocket}, collections::HashMap, time::Duration};
+use std::{net::{SocketAddr}, collections::HashMap, time::Duration};
 
 use futures::stream::FuturesUnordered;
 use tokio::{net::{TcpListener, TcpStream, ToSocketAddrs}, io::copy_bidirectional};
@@ -7,7 +7,7 @@ pub struct Router;
 
 impl Router {
     pub async fn tcp(source: impl ToSocketAddrs, destination: impl ToSocketAddrs + Clone + Send + Sync + 'static) {
-        let Ok(listener) = UdpSocket::bind(source).await else {
+        let Ok(listener) = TcpListener::bind(source).await else {
             eprintln!("Failed to bind tcp");
             return;
         };
@@ -15,7 +15,7 @@ impl Router {
             while let Ok((mut inbound, _)) = listener.accept().await {
                 let Ok(mut outbound) = TcpStream::connect(destination.clone()).await else {
                     eprintln!("Failed to connect tcp");
-                    continue;
+                    return;
                 };
         
                 tokio::spawn(async move {
@@ -31,7 +31,7 @@ impl Router {
 
 #[tokio::main]
 async fn main() {
-    Router::udp_to_tcp("0.0.0.0:5432", "34.118.225.0:5432").await;
+    Router::tcp("0.0.0.0:5432", "34.118.225.0:5432").await;
     loop {
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
