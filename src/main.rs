@@ -4,10 +4,26 @@ use futures::stream::FuturesUnordered;
 use shutil::pipe;
 use tokio::{net::{TcpListener, TcpStream, ToSocketAddrs}, io::copy_bidirectional};
 
+pub fn get_ip_of_pod_in_namespace(namespace: &str) -> &str {
+    //this only works on linux
+    let output_result = pipe(vec![
+        vec!["kubectl", "describe", "-n", namespace, "pod"],
+        vec!["grep", "IP:"],
+        vec!["head", "-1"],
+        vec!["sed", "s: ::g"],
+    ]);
+
+    if let Err(err) = output_result {
+        eprintln!("failed to get k8s pod host: {:?} {:?}", err.code(), err);
+        continue;
+    }
+    output_result.unwrap().replace("IP:", "").trim()
+}
+
 pub struct Router;
 
 impl Router {
-    pub async fn database<>(source: impl ToSocketAddrs) {
+    pub async fn database(source: impl ToSocketAddrs) {
         let Ok(listener) = TcpListener::bind(source).await else {
             eprintln!("Failed to bind tcp");
             return;
@@ -16,20 +32,8 @@ impl Router {
             while let Ok((mut inbound, _)) = listener.accept().await {
                 let destination = match env::var("PHOTON_STRATEGY").unwrap().to_lowercase().as_str() {
                     "k8s" => {
-                        //this only works on linux
-                        let output_result = pipe(vec![
-                            vec!["kubectl", "describe", "-n", "photon", "pod"],
-                            vec!["grep", "IP:"],
-                            vec!["head", "-1"],
-                            vec!["sed", "s: ::g"],
-                        ]);
-
-                        if let Err(err) = output_result {
-                            eprintln!("failed to get k8s pod host: {:?} {:?}", err.code(), err);
-                            continue;
-                        }
-
-                        format!("{}:{}", output_result.unwrap().replace("IP:", "").trim(), "5432")
+                        
+                        format!("{}:{}", get_ip_of_pod_in_namespace("photon"), "5432")
                     },
                     "host" => {
                         env::var("DB_HOST").unwrap()
