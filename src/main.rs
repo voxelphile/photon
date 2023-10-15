@@ -25,7 +25,7 @@ pub fn get_ip_of_pod_in_namespace(namespace: &str) -> Option<HashSet<String>> {
 pub struct Router;
 
 impl Router {
-    pub async fn database(source: impl ToSocketAddrs) {
+    pub async fn database(source: impl ToSocketAddrs, destination_port: String) {
         let Ok(listener) = TcpListener::bind(source).await else {
             eprintln!("Failed to bind tcp");
             return;
@@ -41,10 +41,10 @@ impl Router {
                         //for now, there are no database replicas, so we assert there is only one pod
                         assert_eq!(ips.len(), 1);
 
-                        format!("{}:{}", ips.iter().next().unwrap(), "5432")
+                        format!("{}:{}", ips.iter().next().unwrap(), destination_port)
                     },
                     "host" => {
-                        env::var("DB_HOST").unwrap()
+                        format!("{}:{}", env::var("DB_IP").unwrap(), destination_port)
                     }
                     _ => panic!("invalid strategy")
                 };

@@ -1,4 +1,22 @@
-apiVersion: "apps/v1"
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: photon
+  labels:
+    name: photon
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: photon-config
+  namespace: photon
+  labels:
+    app: photon
+data:
+  PHOTON_STRATEGY: host 
+  DB_IP: 10.92.1.0
+---
+apiVersion: v1
 kind: "Deployment"
 metadata:
   name: photon
