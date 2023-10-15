@@ -67,7 +67,7 @@ impl Router {
 
 #[tokio::main]
 async fn main() {
-    Router::database("0.0.0.0:5432").await;
+    Router::database("0.0.0.0:5432", "5432".to_owned()).await;
     loop {
         //so the application does not exit
         tokio::time::sleep(Duration::from_secs(1)).await;
