@@ -25,31 +25,16 @@ pub fn get_ip_of_pod_in_namespace(namespace: &str) -> Option<HashSet<String>> {
 pub struct Router;
 
 impl Router {
-    pub async fn database(source: impl ToSocketAddrs, destination_port: String) {
+    pub async fn tcp(source: impl ToSocketAddrs, destination: String) {
         let Ok(listener) = TcpListener::bind(source).await else {
             eprintln!("Failed to bind tcp");
             return;
         };
         tokio::spawn(async move {
+            let destination = destination.clone();
             while let Ok((mut inbound, _)) = listener.accept().await {
-                let destination = match env::var("PHOTON_STRATEGY").unwrap().to_lowercase().as_str() {
-                    "k8s" => {
-                        let Some(ips) = get_ip_of_pod_in_namespace("photon") else {
-                            continue;
-                        };
-
-                        //for now, there are no database replicas, so we assert there is only one pod
-                        assert_eq!(ips.len(), 1);
-
-                        format!("{}:{}", ips.iter().next().unwrap(), destination_port)
-                    },
-                    "host" => {
-                        format!("{}:{}", env::var("DB_IP").unwrap(), destination_port)
-                    }
-                    _ => panic!("invalid strategy")
-                };
                 println!("connecting to database at host: \"{}\"", &destination);
-                let Ok(mut outbound) = TcpStream::connect(destination).await else {
+                let Ok(mut outbound) = TcpStream::connect(destination.clone()).await else {
                     eprintln!("Failed to connect tcp");
                     continue;
                 };
@@ -67,7 +52,8 @@ impl Router {
 
 #[tokio::main]
 async fn main() {
-    Router::database("0.0.0.0:5432", "5432".to_owned()).await;
+    Router::tcp("0.0.0.0:5432", env::var("DB_HOST").unwrap()).await;
+    Router::tcp("0.0.0.0:6379", env::var("REDIS_HOST").unwrap()).await;
     loop {
         //so the application does not exit
         tokio::time::sleep(Duration::from_secs(1)).await;

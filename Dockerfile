@@ -6,7 +6,8 @@ COPY . .
 RUN cargo build --release --bin photon
 
 EXPOSE 5432
-ENV DB_HOST=34.118.225.0:5432
-ENV PHOTON_STRATEGY=host
+EXPOSE 6379
+ENV DB_HOST=10.76.1.0:5432
+ENV REDIS_HOST=10.76.3.0:6379
 
 CMD ["./target/release/photon"]

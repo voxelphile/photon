@@ -14,7 +14,7 @@ metadata:
     app: photon
 data:
   PHOTON_STRATEGY: host 
-  DB_IP: 10.92.1.0
+  DB_IP: 10.76.1.0
 ---
 apiVersion: "apps/v1"
 kind: Deployment
@@ -34,7 +34,7 @@ spec:
         app: photon
     spec:
       containers:
-        - image: gcr.io/voxelphile/github.com/voxelphile/photon
+        - image: gcr.io/voxelphile/github.com/voxelphile/photon@sha256:6d92ed96fb2769d62de778536e1c7d488ad81356fa98c61de1cfa75718fcb975
           imagePullPolicy: IfNotPresent
           name: photon-sha256-1
           envFrom:
