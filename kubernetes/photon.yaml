@@ -15,6 +15,7 @@ metadata:
 data:
   PHOTON_STRATEGY: host 
   DB_IP: 10.76.1.0
+  REDIS_IP: 10.76.3.0
 ---
 apiVersion: "apps/v1"
 kind: Deployment
