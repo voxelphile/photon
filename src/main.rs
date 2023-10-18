@@ -52,8 +52,16 @@ impl Router {
 
 #[tokio::main]
 async fn main() {
-    Router::tcp("0.0.0.0:5432", env::var("DB_HOST").unwrap()).await;
-    Router::tcp("0.0.0.0:6379", env::var("REDIS_HOST").unwrap()).await;
+    println!("binding postgres");
+    tokio::spawn(async move {
+        Router::tcp("0.0.0.0:5432", env::var("DB_HOST").unwrap()).await;
+    });
+    println!("bound postgres");
+    println!("binding redis");
+    tokio::spawn(async move {
+        Router::tcp("0.0.0.0:6379", env::var("REDIS_HOST").unwrap()).await;
+    });
+    println!("bound redis");
     loop {
         //so the application does not exit
         tokio::time::sleep(Duration::from_secs(1)).await;
