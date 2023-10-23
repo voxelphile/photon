@@ -10,3 +10,5 @@ tokio = { version = "*", features = ["full"] }
 futures = "*"
 shutil = "*"
 quinn = "*"
+hyper = { version = "*", features = ["full"] }
+reqwest = "*"
